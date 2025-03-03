@@ -16,10 +16,13 @@ import {
     FormMessage,
 } from '@/components/ui/form'
 import { EyeIcon, EyeOffIcon } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { authenticate } from '@/app/actions/auth'
+import { toast } from 'sonner'
 
 const formSchema = z.object({
-    email: z.string().email({
-        message: "Please enter a valid email address",
+  employeeCode: z.string().min(4, {
+        message: "Please enter a valid employee code",
     }),
     password: z.string().min(6, {
         message: "Password must be at least 6 characters",
@@ -29,12 +32,13 @@ const formSchema = z.object({
 export default function LoginForm() {
     const [isLoading, setIsLoading] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
+    const router = useRouter();
 
     // Initialize the form
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            email: "",
+          employeeCode: "",
             password: "",
         },
     })
@@ -43,14 +47,23 @@ export default function LoginForm() {
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true)
         try {
+          const res = await authenticate(values.employeeCode, values.password);
+          console.log(res, 'resresresres')
             // Here you would normally call your auth service
-            console.log(values)
+            if (res?.error) {
+              //error
+              if (res?.code === 1) {
+              toast.error(res?.error || 'Error login');
+                return;
+              }
+              if (res?.code === 2) {
+                return;
+              }
+              toast.error(res?.error || 'Error login');
+            } else {
+              router.push('/dashboard');
+            }
 
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000))
-
-            // Redirect to dashboard
-            window.location.href = '/dashboard'
         } catch (error) {
             console.error(error)
         } finally {
@@ -63,14 +76,14 @@ export default function LoginForm() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                     control={form.control}
-                    name="email"
+                    name="employeeCode"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Email</FormLabel>
+                            <FormLabel>Employee Code</FormLabel>
                             <FormControl>
                                 <Input
-                                    placeholder="your.email@example.com"
-                                    type="email"
+                                    placeholder="your employeeCode"
+                                    type="text"
                                     {...field}
                                     className="bg-background/50"
                                 />

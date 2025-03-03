@@ -1,3 +1,5 @@
-export default function Home({ children }: { children: React.ReactNode }) {
-    return <>{children}</>;
+import { redirect } from "next/navigation";
+
+export default function Home() {
+    return redirect("/dashboard");
 }
